@@ -6,6 +6,7 @@
 #define H3 20
 #define P1 21
 #define ONE_WIRE_BUS 6 // Pin dla DS18B20
+#define T1 22
 
 OneWire oneWire(ONE_WIRE_BUS);
 DallasTemperature sensors(&oneWire);
@@ -15,6 +16,11 @@ void setup() {
   pinMode(H2, OUTPUT);
   pinMode(H3, OUTPUT);
   pinMode(P1, OUTPUT);
+  
+  pinMode(22, INPUT_PULLUP); //built -in input resistance
+  pinMode(T1, INPUT);
+  pinMode(LED_BUILTIN, OUTPUT);
+  DeviceAddress insideThermometer;
 
   digitalWrite(H1, LOW);
   digitalWrite(H2, LOW);
@@ -28,12 +34,13 @@ void setup() {
 
 void loop() {
   if (Serial.available()) {
+    int tempC = 22;
     String command = Serial.readStringUntil('\n');
-    handleCommand(command);
+    handleCommand(command, tempC);
   }
 }
 
-void handleCommand(String command) {
+void handleCommand(String command, int tempC) {
   command.trim();
   String module = command.substring(0, 2);
   String action = command.substring(3);
@@ -49,10 +56,12 @@ void handleCommand(String command) {
   } else if (module == "P1") {
     pin = P1;
   } else if (module == "T1" && action == "?") {
-    readTemperature(0);
+    Serial.println("Temp C: " + tempC);
+    //readTemperature(0);
     return;
   } else if (module == "T2" && action == "?") {
-    readTemperature(1);
+    Serial.println("Temp C: " + tempC);
+    //readTemperature(1);
     return;
   } else {
     Serial.println("Nieznany moduł: " + module);
@@ -71,6 +80,7 @@ void handleCommand(String command) {
 }
 
 void readTemperature(int sensorIndex) {
+
   sensors.requestTemperatures();
   float tempC = sensors.getTempCByIndex(sensorIndex); 
   Serial.print("T" + String(sensorIndex + 1) + "-");
@@ -78,3 +88,5 @@ void readTemperature(int sensorIndex) {
   Serial.println("C");
   Serial.println("T" + String(sensorIndex + 1) + "-?-OK"); // potwierdzenie akcji
 }
+
+
