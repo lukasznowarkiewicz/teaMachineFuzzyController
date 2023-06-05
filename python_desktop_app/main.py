@@ -6,9 +6,7 @@ from dash import Dash
 import dash_core_components as dcc
 import dash_html_components as html
 from dash.dependencies import Output, Input
-import threading
 import collections
-import queue
 
 # Wyszukaj urządzenia podłączone do komputera przez port szeregowy
 ports = serial.tools.list_ports.comports()
@@ -31,29 +29,37 @@ commands = ['H1-ON', 'H2-ON', 'H3-ON', 'P1-ON', 'H1-OFF', 'H2-OFF', 'H3-OFF', 'P
 # Queue to store history of data
 data_queue = collections.deque(maxlen=1000)
 
-def update_data():
-    while True:
-        for command in commands:
-            ser.write((command + '\n').encode())
-            time.sleep(1)
-            response = ser.readline().decode().strip()  # Odczytaj potwierdzenie
-            print('Odpowiedź: ', response)
-            data_queue.append((time.time(), command, response))
-
-threading.Thread(target=update_data).start()
+def send_command(command):
+    ser.write((command + '\n').encode())
+    time.sleep(1)
+    response = ser.readline().decode().strip()  # Odczytaj potwierdzenie
+    print('Odpowiedź: ', response)
+    data_queue.append((time.time(), command, response))
 
 app = Dash(__name__)
 
 app.layout = html.Div(
     children=[
-        html.H1(children="Arduino GPIO states",),
+        html.H1(children="Sterownik przepływowym podgrzewaniem wody",),
+        html.Button('Zmiana stanu', id='toggle-button', n_clicks=0),
         dcc.Graph(id="live-chart",),
         dcc.Interval(id="interval-component", interval=1000, n_intervals=0),
     ]
 )
 
-@app.callback(Output("live-chart", "figure"), Input("interval-component", "n_intervals"))
-def update_graph(n):
+@app.callback(Output("toggle-button", "children"), Input("toggle-button", "n_clicks"))
+def toggle_devices(n_clicks):
+    if n_clicks % 2 == 0:
+        for command in commands[0:4]:  # Turn on devices
+            send_command(command)
+        return 'Wyłącz grzanie'
+    else:
+        for command in commands[4:]:  # Turn off devices
+            send_command(command)
+        return 'Włącz grzanie'
+
+@app.callback(Output("live-chart", "figure"), [Input("toggle-button", "n_clicks"), Input("interval-component", "n_intervals")])
+def update_graph(n_clicks, n_intervals):
     data = {'time': [], 'pin': [], 'state': []}
     for item in list(data_queue):
         time_val, command, response = item
