@@ -18,7 +18,8 @@ void setup() {
   pinMode(P1, OUTPUT);
   
   pinMode(22, INPUT_PULLUP); //built -in input resistance
-  pinMode(T1, INPUT);
+  pinMode(T1, OUTPUT);
+  
   pinMode(LED_BUILTIN, OUTPUT);
   DeviceAddress insideThermometer;
 
@@ -34,13 +35,12 @@ void setup() {
 
 void loop() {
   if (Serial.available()) {
-    int tempC = 22;
     String command = Serial.readStringUntil('\n');
-    handleCommand(command, tempC);
+    handleCommand(command);
   }
 }
 
-void handleCommand(String command, int tempC) {
+void handleCommand(String command) {
   command.trim();
   String module = command.substring(0, 2);
   String action = command.substring(3);
@@ -49,19 +49,20 @@ void handleCommand(String command, int tempC) {
 
   if (module == "H1") {
     pin = H1;
+    heater = h1;
   } else if (module == "H2") {
     pin = H2;
+    heater = h2;
   } else if (module == "H3") {
     pin = H3;
+    heater = h3;
   } else if (module == "P1") {
     pin = P1;
   } else if (module == "T1" && action == "?") {
-    Serial.println("Temp C: " + tempC);
-    //readTemperature(0);
+    readTemperature(0, tempC);
     return;
   } else if (module == "T2" && action == "?") {
-    Serial.println("Temp C: " + tempC);
-    //readTemperature(1);
+    readTemperature(1, tempC);
     return;
   } else {
     Serial.println("Nieznany moduł: " + module);
@@ -70,23 +71,55 @@ void handleCommand(String command, int tempC) {
 
   if (action == "ON") {
     digitalWrite(pin, HIGH);
+    switch(module)
+    {
+      case "H1":
+        tempC += 40;
+        break;
+      case "H2":
+        tempC += 45;
+        break;
+      case "H3":
+        tempC += 48;
+        break;
+      }
+
+    
     Serial.println(command + "-OK"); // potwierdzenie akcji
   } else if (action == "OFF") {
     digitalWrite(pin, LOW);
+    switch(module)
+    {
+      case "H1":
+        tempC -= 40;
+        break;
+      case "H2":
+        tempC -= 45;
+        break;
+      case "H3":
+        tempC -= 48;
+        break;
+      }
     Serial.println(command + "-OK"); // potwierdzenie akcji
   } else {
     Serial.println("Nieznana akcja: " + action);
   }
 }
 
-void readTemperature(int sensorIndex) {
-
+void readTemperature(int sensorIndex, int tempC) {
   sensors.requestTemperatures();
-  float tempC = sensors.getTempCByIndex(sensorIndex); 
+  //float tempC = sensors.getTempCByIndex(sensorIndex); 
   Serial.print("T" + String(sensorIndex + 1) + "-");
   Serial.print(tempC);
   Serial.println("C");
   Serial.println("T" + String(sensorIndex + 1) + "-?-OK"); // potwierdzenie akcji
 }
 
+// function to print the temperature for a device
+void printTemperature(int tempC)
+{
+  
+  Serial.print("Temp C: ");
+  Serial.print(tempC);
+}
 
