@@ -1,5 +1,3 @@
-
-
 #define H1 18
 #define H2 19
 #define H3 20
@@ -34,17 +32,26 @@ int tempC1 = ROOM_TEMP;
 int tempC2 = ROOM_TEMP;
 int tempC3 = ROOM_TEMP;
 
-//jeśli grałka ile zmienia się temperatura
+int rando()
+{
+    srand(time(NULL));
+    int myArray[5] = { -2, -1, 0, 1, 2 };
+    int randomIndex = rand() % 5;
+    int randomValue = myArray[randomIndex];
+    return randomValue;
+}
+
+//jeśli grzalka ile zmienia się temperatura
 int deltaTemp1(){
-  return digitalRead(H1)* DELTA_H1;
+  return digitalRead(H1)* DELTA_H1 + rando();
 }
 
 int deltaTemp2(){
-  return digitalRead(H1)* DELTA_H1 + digitalRead(H2)* DELTA_H2;
+  return digitalRead(H1)* DELTA_H1 + digitalRead(H2)* DELTA_H2 + rando();
 }
 
 int deltaTemp3(){
-  return digitalRead(H1)* DELTA_H1 + digitalRead(H2)* DELTA_H2 + digitalRead(H3)* DELTA_H3;
+  return digitalRead(H1)* DELTA_H1 + digitalRead(H2)* DELTA_H2 + digitalRead(H3)* DELTA_H3 + rando();
 }
 
 void loop() {
@@ -56,27 +63,32 @@ void loop() {
     {
       delta = deltaTemp1();
       if(delta == 0 && tempC1>ROOM_TEMP) //jesli zadna grzalka nie grzeje
-        delta = -2;
+        delta += -2;
     }
     tempC1 += delta;
-
+    Serial.println("DELTA temp 1 " + String(delta) );
+    Serial.println("temp " + String(tempC1) +" ");
     delta = 0;
     if(tempC2 <MAX_TEMP)
     {
       delta = deltaTemp2();
       if(delta == 0 && tempC2>ROOM_TEMP) //jesli zadna grzalka nie grzeje
-        delta = -2;
+        delta += -2;
     }
     tempC2 += delta;
-
+    Serial.println("DELTA temp 2 " + String(delta) );
+    Serial.println("temp " + String(tempC2) +" ");
     delta = 0;
     if(tempC3 <MAX_TEMP)
     {
       delta = deltaTemp3();
       if(delta == 0 && tempC3>ROOM_TEMP) //jesli zadna grzalka nie grzeje
-        delta = -2;
+        delta += -2;
     }
+    
     tempC3 += delta;
+    Serial.println("DELTA temp 3 " + String(delta) );
+    Serial.println("temp " + String(tempC3) +" ");
     
     handleCommand(command, tempC1, tempC2, tempC3);
   }
@@ -99,15 +111,19 @@ void handleCommand(String command, int tempC1, int tempC2, int tempC3) {
     pin = P1;
   } else if (module == "T0" && action == "?") {
     printTemperature(ROOM_TEMP);
+    Serial.println();
     return;
   } else if (module == "T1" && action == "?") {
     printTemperature(tempC1);
+    Serial.println();
     return;
   } else if (module == "T2" && action == "?") {
     printTemperature(tempC2);
+    Serial.println();
     return;
    } else if (module == "T3" && action == "?") {
     printTemperature(tempC3);
+    Serial.println();
     return;
   } else {
     Serial.println("Nieznany moduł: " + module);
@@ -121,7 +137,7 @@ void handleCommand(String command, int tempC1, int tempC2, int tempC3) {
   } else if (action == "OFF") {
     digitalWrite(pin, LOW);
 
-    Serial.println(command + "-OK"); // potwierdzenie akcji
+    Serial.println("\n" + command + "-OK" + "\n"); // potwierdzenie akcji
   } else {
     Serial.println("Nieznana akcja: " + action);
   }
@@ -130,7 +146,8 @@ void handleCommand(String command, int tempC1, int tempC2, int tempC3) {
 // function to print the temperature for a device
 void printTemperature(int tempC)
 {
-  
-  Serial.print("Temp C: ");
+  Serial.println();
+  Serial.print("TEMP C: ");
   Serial.print(tempC);
+  Serial.println();
 }
