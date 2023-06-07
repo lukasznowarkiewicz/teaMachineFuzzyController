@@ -1,3 +1,5 @@
+
+
 #define H1 18
 #define H2 19
 #define H3 20
@@ -11,6 +13,9 @@
 //maksymalna temperatura w jakiej grzałka wciaż grzeje
 #define MAX_TEMP 120
 #define ROOM_TEMP 23
+
+#define innertia_up 5
+#define innertia_down 3
 
 void setup() {
   pinMode(H1, OUTPUT);
@@ -28,6 +33,10 @@ void setup() {
   Serial.begin(9600);
 }
 
+int program_time = 0;
+
+int times[6] = {0, 0, 0, 0, 0, 0}; //dodawac do pierwszej cos w stylu 6, a do drugiej 3 przy High i low, ||a potem odejmowac/dodawact to *1, *2  //[2][3]
+int (*p) = times;
 int tempC1 = ROOM_TEMP;
 int tempC2 = ROOM_TEMP;
 int tempC3 = ROOM_TEMP;
@@ -43,20 +52,36 @@ int rando()
 
 //jeśli grzalka ile zmienia się temperatura
 int deltaTemp1(){
-  return digitalRead(H1)* DELTA_H1 + rando();
+  int inertia = (-times[0]) + (times[3]*2);//*2);
+  return (digitalRead(H1)* DELTA_H1) + inertia; // + rando(); -on  // -times[1][1]    +times[2][1]*2
+  //Serial.println("---inertia h1 " + String(inertia) + "delta h1 " + DELTA_H1 );
 }
 
+
 int deltaTemp2(){
-  return digitalRead(H1)* DELTA_H1 + digitalRead(H2)* DELTA_H2 + rando();
+  int inertia = -times[0]-times[1] + times[3]*2+times[4]*2;
+  return digitalRead(H1)* DELTA_H1 + digitalRead(H2)* DELTA_H2 + inertia; // + rando(); +off  //-times[1][1]-times[1][2]    +times[2][1]*2+times[2][2]*2
 }
 
 int deltaTemp3(){
-  return digitalRead(H1)* DELTA_H1 + digitalRead(H2)* DELTA_H2 + digitalRead(H3)* DELTA_H3 + rando();
+  int inertia = -times[0]-times[1]-times[2] + times[3]*2+times[4]*2+times[5]*2;
+  return digitalRead(H1)* DELTA_H1 + digitalRead(H2)* DELTA_H2 + digitalRead(H3)* DELTA_H3 + inertia; // + rando();  //-times[1][1]-times[1][2]-times[1][3]     +times[2][1]*2+times[2][2]*2+times[2][3]*2
 }
 
 void loop() {
   if (Serial.available()) {
     String command = Serial.readStringUntil('\n');
+
+    //zmiana nagrzania/chlodzenia sie grzalki z zachowaniem bezwladnosci
+    for(int i; i<6; i++){
+      if(p[i]>0)
+        p[i] = p[i]-1;
+      Serial.println("---times[i] " + String(p[i]) );
+//      if(times[1][i]>0)
+//        times[1][i] -=1;
+        //Serial.println("---inertia h1 " + String(inertia) + "delta h1 " + DELTA_H1 );
+    }
+
     //stopniowe grzanie sie/ chłodzenie wody
     int delta = 0;
     if(tempC1 <MAX_TEMP)
@@ -90,57 +115,74 @@ void loop() {
     Serial.println("DELTA temp 3 " + String(delta) );
     Serial.println("temp " + String(tempC3) +" ");
     
-    handleCommand(command, tempC1, tempC2, tempC3);
+    p = handleCommand(command, tempC1, tempC2, tempC3, p);  //{0 0 0, 0 0 0 }
+    //print(p[0])
+
+
+    int inertia = (-times[0]) + (times[3]*2);//;*2);
+    Serial.println("0-----inertia " + String(inertia) );
+    Serial.println("0-- delta" + String(digitalRead(H1)* DELTA_H1) );
+    int result = (digitalRead(H1)* DELTA_H1) + inertia;
+    Serial.println("0-----result " + String(result) );
   }
 }
 
-void handleCommand(String command, int tempC1, int tempC2, int tempC3) {
+int* handleCommand(String command, int tempC1, int tempC2, int tempC3, int times[]) {
   command.trim();
   String module = command.substring(0, 2);
   String action = command.substring(3);
 
   int pin;
-
+  int pin_num = 0;
+     
   if (module == "H1") {
     pin = H1;
+    pin_num = 1;
   } else if (module == "H2") {
     pin = H2;
+    pin_num = 2;
   } else if (module == "H3") {
     pin = H3;
+    pin_num = 3;
   } else if (module == "P1") {
     pin = P1;
   } else if (module == "T0" && action == "?") {
     printTemperature(ROOM_TEMP);
     Serial.println();
-    return;
+    return times;
   } else if (module == "T1" && action == "?") {
     printTemperature(tempC1);
     Serial.println();
-    return;
+    return times;
   } else if (module == "T2" && action == "?") {
     printTemperature(tempC2);
     Serial.println();
-    return;
+    return times;
    } else if (module == "T3" && action == "?") {
     printTemperature(tempC3);
     Serial.println();
-    return;
+    return times;
   } else {
     Serial.println("Nieznany moduł: " + module);
-    return;
+    return times;
   }
 
   if (action == "ON") {
+    
     digitalWrite(pin, HIGH);
+    times[pin_num-1] = innertia_up;  //times
     
     Serial.println(command + "-OK"); // potwierdzenie akcji
   } else if (action == "OFF") {
+    
     digitalWrite(pin, LOW);
+    times[3 + pin_num-1] = innertia_down;  //times[1]
 
     Serial.println("\n" + command + "-OK" + "\n"); // potwierdzenie akcji
   } else {
     Serial.println("Nieznana akcja: " + action);
   }
+  return times;
 }
 
 // function to print the temperature for a device
@@ -148,6 +190,6 @@ void printTemperature(int tempC)
 {
   Serial.println();
   Serial.print("TEMP C: ");
-  Serial.print(tempC);
+  Serial.print(tempC ); //+ rando()
   Serial.println();
 }
