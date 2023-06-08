@@ -28,8 +28,11 @@ Po poprawnym wykonaniu każdej komendy sterującej, Arduino odeśle potwierdzeni
 
 ## Odczyt temperatury
 Aby odczytać temperaturę z czujników DS18B20, można wysłać następujące komendy:
+- T0-?
 - T1-?
 - T2-?
+- T3-?
+
 
 Arduino odpowie poprzez przesłanie temperatury w formie "T1-XX.XC" lub "T2-XX.XC", gdzie XX.X to odczytana temperatura. Na koniec otrzymasz potwierdzenie w postaci "T1-?-OK" lub "T2-?-OK".
 
