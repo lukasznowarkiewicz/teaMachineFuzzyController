@@ -141,22 +141,22 @@ int* handleCommand(String command, int tempC1, int tempC2, int tempC3, int times
     pin = P1;
   } else if (module == "T0" && action == "?") {
     printTemperature(ROOM_TEMP, "T0");
-    Serial.println();
+    //Serial.println();
     return times;
   } else if (module == "T1" && action == "?") {
     printTemperature(tempC1, "T1");
-    Serial.println();
+    //Serial.println();
     return times;
   } else if (module == "T2" && action == "?") {
     printTemperature(tempC2, "T2");
-    Serial.println();
+    //Serial.println();
     return times;
    } else if (module == "T3" && action == "?") {
     printTemperature(tempC3, "T3");
-    Serial.println();
+    //Serial.println();
     return times;
   } else {
-    Serial.println("Nieznany moduł: " + module);
+    //Serial.println("Nieznany moduł: " + module);
     return times;
   }
 
@@ -168,7 +168,7 @@ int* handleCommand(String command, int tempC1, int tempC2, int tempC3, int times
       times[pin_num-1] = (6 - times[3 + pin_num-1])+1;
       times[3 + pin_num-1] = 0;
     
-    Serial.println(command + "-OK"); // potwierdzenie akcji
+    //Serial.println(command + "-OK"); // potwierdzenie akcji
   } else if (action == "OFF") {
     
     digitalWrite(pin, LOW);
@@ -178,9 +178,9 @@ int* handleCommand(String command, int tempC1, int tempC2, int tempC3, int times
       times[3 + pin_num-1] = int((6 - times[ pin_num-1])/2)+1;
       times[pin_num-1] = 0;
 
-    Serial.println("\n" + command + "-OK" + "\n"); // potwierdzenie akcji
+    //Serial.println("\n" + command + "-OK" + "\n"); // potwierdzenie akcji
   } else {
-    Serial.println("Nieznana akcja: " + action);
+    //Serial.println("Nieznana akcja: " + action);
   }
   return times;
 }
