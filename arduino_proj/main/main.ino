@@ -14,8 +14,8 @@
 #define MAX_TEMP 120
 #define ROOM_TEMP 23
 
-#define innertia_up 5
-#define innertia_down 3
+#define INNERTIA_UP 6
+#define INNERTIA_DOWN 3
 
 void setup() {
   pinMode(H1, OUTPUT);
@@ -35,7 +35,7 @@ void setup() {
 
 int program_time = 0;
 
-int times[6] = {0, 0, 0, 0, 0, 0}; //dodawac do pierwszej cos w stylu 6, a do drugiej 3 przy High i low, ||a potem odejmowac/dodawact to *1, *2  //[2][3]
+int times[7] = {0, 0, 0, 0, 0, 0, 0}; //dodawac do pierwszej cos w stylu 6, a do drugiej 3 przy High i low, ||a potem odejmowac/dodawact to *1, *2  //[2][3]
 int (*p) = times;
 int tempC1 = ROOM_TEMP;
 int tempC2 = ROOM_TEMP;
@@ -68,6 +68,7 @@ int deltaTemp3(){
   return digitalRead(H1)* DELTA_H1 + digitalRead(H2)* DELTA_H2 + digitalRead(H3)* DELTA_H3 + inertia; // + rando();  //-times[1][1]-times[1][2]-times[1][3]     +times[2][1]*2+times[2][2]*2+times[2][3]*2
 }
 
+
 void loop() {
   if (Serial.available()) {
     String command = Serial.readStringUntil('\n');
@@ -83,33 +84,59 @@ void loop() {
     }
 
     //stopniowe grzanie sie/ chłodzenie wody
-    int delta = 0;
+    int delta = deltaTemp1();
     if(tempC1 <MAX_TEMP)
-    {
-      delta = deltaTemp1();
+    { 
       if(delta == 0 && tempC1>ROOM_TEMP) //jesli zadna grzalka nie grzeje
         delta += -2;
-    }
+    }else
+      if(delta == 0)
+        delta += -2;
+      else
+        delta = 0;
+
     tempC1 += delta;
     Serial.println("DELTA temp 1 " + String(delta) );
     Serial.println("temp " + String(tempC1) +" ");
-    delta = 0;
+
+    delta = deltaTemp2();
     if(tempC2 <MAX_TEMP)
-    {
-      delta = deltaTemp2();
+    { 
       if(delta == 0 && tempC2>ROOM_TEMP) //jesli zadna grzalka nie grzeje
         delta += -2;
-    }
+    }else
+      if(delta == 0)
+        delta += -2;
+      else
+        delta = 0;
+    
+//    delta = -2;
+//    if(tempC2 <MAX_TEMP)
+//    {
+//      delta = deltaTemp2();
+//      if(delta == 0 && tempC2>ROOM_TEMP) //jesli zadna grzalka nie grzeje
+//        delta += -2;
+//    }
     tempC2 += delta;
     Serial.println("DELTA temp 2 " + String(delta) );
     Serial.println("temp " + String(tempC2) +" ");
-    delta = 0;
+//    delta = -2;
+//    if(tempC3 <MAX_TEMP)
+//    {
+//      delta = deltaTemp3();
+//      if(delta == 0 && tempC3>ROOM_TEMP) //jesli zadna grzalka nie grzeje
+//        delta += -2;
+//    }
+    delta = deltaTemp3();
     if(tempC3 <MAX_TEMP)
-    {
-      delta = deltaTemp3();
+    { 
       if(delta == 0 && tempC3>ROOM_TEMP) //jesli zadna grzalka nie grzeje
         delta += -2;
-    }
+    }else
+      if(delta == 0)
+        delta += -2;
+      else
+        delta = 0;
     
     tempC3 += delta;
     Serial.println("DELTA temp 3 " + String(delta) );
@@ -118,12 +145,12 @@ void loop() {
     p = handleCommand(command, tempC1, tempC2, tempC3, p);  //{0 0 0, 0 0 0 }
     //print(p[0])
 
-
-    int inertia = (-times[0]) + (times[3]*2);//;*2);
-    Serial.println("0-----inertia " + String(inertia) );
-    Serial.println("0-- delta" + String(digitalRead(H1)* DELTA_H1) );
+    //Serial.println("0-----times " + String(p[0])+ String(p[6]));
+    int inertia = (-p[0]) + (p[3]*2);//;*2);  //times[0]
+    Serial.println("0-----opoznienie " + String(inertia) );
+    Serial.println("0-- delta_on_H " + String(digitalRead(H1)* DELTA_H1) );
     int result = (digitalRead(H1)* DELTA_H1) + inertia;
-    Serial.println("0-----result " + String(result) );
+    Serial.println("0-delta----result " + String(result) );
   }
 }
 
@@ -162,6 +189,15 @@ int* handleCommand(String command, int tempC1, int tempC2, int tempC3, int times
     printTemperature(tempC3);
     Serial.println();
     return times;
+//   } else if (module == "CL") {
+//    //resetAll(); //reset : times[6] == 1
+//    //dodawac do pierwszej cos w stylu 6, a do drugiej 3 przy High i low, ||a potem odejmowac/dodawact to *1, *2  //[2][3]
+//    times[0], times[1], times[2], times[3], times[4], times[5], times[6] = 0, 0, 0, 0, 0, 0, 1;
+//    digitalWrite(H1, LOW);
+//    digitalWrite(H2, LOW);
+//    digitalWrite(H3, LOW);
+//    Serial.println();
+//    return times;
   } else {
     Serial.println("Nieznany moduł: " + module);
     return times;
@@ -170,13 +206,20 @@ int* handleCommand(String command, int tempC1, int tempC2, int tempC3, int times
   if (action == "ON") {
     
     digitalWrite(pin, HIGH);
-    times[pin_num-1] = innertia_up;  //times
+    times[pin_num-1] = INNERTIA_UP;  //times
+    if(times[3 + pin_num-1] != 0)
+      times[pin_num-1] = (6 - times[3 + pin_num-1])+1;
+      times[3 + pin_num-1] = 0;
     
     Serial.println(command + "-OK"); // potwierdzenie akcji
   } else if (action == "OFF") {
     
     digitalWrite(pin, LOW);
-    times[3 + pin_num-1] = innertia_down;  //times[1]
+    
+    times[3 + pin_num-1] = INNERTIA_DOWN;  //times[1]
+    if(times[pin_num-1] != 0)
+      times[3 + pin_num-1] = int((6 - times[ pin_num-1])/2)+1;
+      times[pin_num-1] = 0;
 
     Serial.println("\n" + command + "-OK" + "\n"); // potwierdzenie akcji
   } else {
