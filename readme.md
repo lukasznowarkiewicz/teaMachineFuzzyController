@@ -3,7 +3,7 @@
 
 # Sterownik Raspberry pi PICO z obsługą czujników temperatury DS18B20
 
-Ten projekt Arduino służy do sterowania czterema wyjściami GPIO (H1, H2, H3, P1) oraz do odczytywania temperatury z dwóch czujników DS18B20 (T1, T2).
+Ten projekt Arduino służy do sterowania czterema wyjściami GPIO (H1, H2, H3, P1) oraz do odczytywania temperatury z czterech czujników DS18B20 (T0, T1, T2, T3).
 
 ## Schemat pinów
 Piny GPIO zdefiniowane w projekcie to:
