@@ -1,5 +1,3 @@
-
-
 #define H1 18
 #define H2 19
 #define H3 20
@@ -53,8 +51,7 @@ int rando()
 //jeśli grzalka ile zmienia się temperatura
 int deltaTemp1(){
   int inertia = (-times[0]) + (times[3]*2);//*2);
-  return (digitalRead(H1)* DELTA_H1) + inertia; // + rando(); -on  // -times[1][1]    +times[2][1]*2
-  //Serial.println("---inertia h1 " + String(inertia) + "delta h1 " + DELTA_H1 );
+  return (digitalRead(H1)* DELTA_H1) + inertia; 
 }
 
 
@@ -77,10 +74,6 @@ void loop() {
     for(int i; i<6; i++){
       if(p[i]>0)
         p[i] = p[i]-1;
-      Serial.println("---times[i] " + String(p[i]) );
-//      if(times[1][i]>0)
-//        times[1][i] -=1;
-        //Serial.println("---inertia h1 " + String(inertia) + "delta h1 " + DELTA_H1 );
     }
 
     //stopniowe grzanie sie/ chłodzenie wody
@@ -96,8 +89,6 @@ void loop() {
         delta = 0;
 
     tempC1 += delta;
-    Serial.println("DELTA temp 1 " + String(delta) );
-    Serial.println("temp " + String(tempC1) +" ");
 
     delta = deltaTemp2();
     if(tempC2 <MAX_TEMP)
@@ -109,24 +100,8 @@ void loop() {
         delta += -2;
       else
         delta = 0;
-    
-//    delta = -2;
-//    if(tempC2 <MAX_TEMP)
-//    {
-//      delta = deltaTemp2();
-//      if(delta == 0 && tempC2>ROOM_TEMP) //jesli zadna grzalka nie grzeje
-//        delta += -2;
-//    }
+        
     tempC2 += delta;
-    Serial.println("DELTA temp 2 " + String(delta) );
-    Serial.println("temp " + String(tempC2) +" ");
-//    delta = -2;
-//    if(tempC3 <MAX_TEMP)
-//    {
-//      delta = deltaTemp3();
-//      if(delta == 0 && tempC3>ROOM_TEMP) //jesli zadna grzalka nie grzeje
-//        delta += -2;
-//    }
     delta = deltaTemp3();
     if(tempC3 <MAX_TEMP)
     { 
@@ -139,18 +114,9 @@ void loop() {
         delta = 0;
     
     tempC3 += delta;
-    Serial.println("DELTA temp 3 " + String(delta) );
-    Serial.println("temp " + String(tempC3) +" ");
     
-    p = handleCommand(command, tempC1, tempC2, tempC3, p);  //{0 0 0, 0 0 0 }
-    //print(p[0])
+    p = handleCommand(command, tempC1, tempC2, tempC3, p);  
 
-    //Serial.println("0-----times " + String(p[0])+ String(p[6]));
-    int inertia = (-p[0]) + (p[3]*2);//;*2);  //times[0]
-    Serial.println("0-----opoznienie " + String(inertia) );
-    Serial.println("0-- delta_on_H " + String(digitalRead(H1)* DELTA_H1) );
-    int result = (digitalRead(H1)* DELTA_H1) + inertia;
-    Serial.println("0-delta----result " + String(result) );
   }
 }
 
@@ -174,30 +140,21 @@ int* handleCommand(String command, int tempC1, int tempC2, int tempC3, int times
   } else if (module == "P1") {
     pin = P1;
   } else if (module == "T0" && action == "?") {
-    printTemperature(ROOM_TEMP);
+    printTemperature(ROOM_TEMP, "T0");
     Serial.println();
     return times;
   } else if (module == "T1" && action == "?") {
-    printTemperature(tempC1);
+    printTemperature(tempC1, "T1");
     Serial.println();
     return times;
   } else if (module == "T2" && action == "?") {
-    printTemperature(tempC2);
+    printTemperature(tempC2, "T2");
     Serial.println();
     return times;
    } else if (module == "T3" && action == "?") {
-    printTemperature(tempC3);
+    printTemperature(tempC3, "T3");
     Serial.println();
     return times;
-//   } else if (module == "CL") {
-//    //resetAll(); //reset : times[6] == 1
-//    //dodawac do pierwszej cos w stylu 6, a do drugiej 3 przy High i low, ||a potem odejmowac/dodawact to *1, *2  //[2][3]
-//    times[0], times[1], times[2], times[3], times[4], times[5], times[6] = 0, 0, 0, 0, 0, 0, 1;
-//    digitalWrite(H1, LOW);
-//    digitalWrite(H2, LOW);
-//    digitalWrite(H3, LOW);
-//    Serial.println();
-//    return times;
   } else {
     Serial.println("Nieznany moduł: " + module);
     return times;
@@ -229,10 +186,10 @@ int* handleCommand(String command, int tempC1, int tempC2, int tempC3, int times
 }
 
 // function to print the temperature for a device
-void printTemperature(int tempC)
+void printTemperature(int tempC, String T)
 {
-  Serial.println();
-  Serial.print("TEMP C: ");
-  Serial.print(tempC ); //+ rando()
+  //Serial.println();
+  //Serial.print("TEMP C: ");
+  Serial.print(T + "-" + String(tempC + rando() ) ); //+ rando() T1-90C
   Serial.println();
 }
