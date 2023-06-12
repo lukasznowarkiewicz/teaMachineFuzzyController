@@ -17,10 +17,8 @@ import pandas as pd
 ports = serial.tools.list_ports.comports() #serial.tools.list_ports.comports()
 device = None
 
-#print("Wypisz porty", ports)
 
 for port in ports:
-    print("port", port)
     if 'Pico' in port.description:
         device = port.device
         break
