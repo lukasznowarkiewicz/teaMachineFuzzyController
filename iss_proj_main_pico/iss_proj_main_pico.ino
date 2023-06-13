@@ -1,18 +1,10 @@
 #include "Arduino.h"
-#include <OneWire.h>
-#include <DallasTemperature.h>
 #include "Adafruit_PCF8575.h" // library for IO expanders on I2C line
 Adafruit_PCF8575 pcf;
-
 #define H1 2
 #define H2 3
 #define H3 0
 #define P1 1
-#define T0 6
-#define T1 22
-#define T2 22
-#define T3 22
-//#define ONE_WIRE_BUS 6 // Pin dla DS18B20
 
 void setup() {
   pinMode(H1, OUTPUT);
@@ -21,15 +13,20 @@ void setup() {
   pcf.pinMode(H3, OUTPUT);
   pcf.pinMode(P1, OUTPUT);
   pinMode(LED_BUILTIN, OUTPUT);
-//  pinMode(T0, OUTPUT);
-//  pinMode(TO, INPUT_PULLUP)
+  
+//  Test turn on
+  pcf.digitalWrite(H3, LOW);
+  pcf.digitalWrite(P1, LOW);
+  digitalWrite(H1, LOW);
+  digitalWrite(H2, LOW);
 
+  delay(2000);
+//  test turn off
   pcf.digitalWrite(H3, HIGH);
   pcf.digitalWrite(P1, HIGH);
   digitalWrite(H1, HIGH);
   digitalWrite(H2, HIGH);
-  digitalWrite(T0, LOW);  
-  //  sensors.begin();
+  
   
   Serial.begin(9600);
   digitalWrite(LED_BUILTIN, HIGH);
@@ -87,12 +84,6 @@ void handleCommand(String command) {
     } else {
       Serial.println("Nieznana akcja: " + action);
     }
-  } else if (module == "T1" && action == "?") {
-//    readTemperature(0);
-    return;
-  } else if (module == "T2" && action == "?") {
-//    readTemperature(1);
-    return;
   } else {
     Serial.println("Nieznany moduł: " + module);
     return;
