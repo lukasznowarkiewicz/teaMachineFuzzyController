@@ -31,7 +31,7 @@ app.layout = html.Div(
             value='1'
         ),
         html.Div(id='selected-temperature'),
-        html.Div(id='num-temperatures'),
+        #html.Div(id='num-temperatures'),
         dcc.Graph(id='live-graph', animate=True),
         dcc.Interval(id='graph-update', interval=1000),     #tu odświerza graf co sekundę
     ],
@@ -125,10 +125,10 @@ def update_selected_temperature(selected_temperature):
         #tutaj przekaz zadaną temp po usb
         return html.H3(f'Wybrana temperatura: {selected_temperature}')
 
-@app.callback(Output('num-temperatures', 'children'), Input('num-temperatures-dropdown', 'value'))
-def update_num_temperatures(num_temperatures):
-        #tutaj przekaz zadaną temp po usb
-        return html.H6(f'Wybrana liczba pomiarów na wykresie: {num_temperatures}')
+# @app.callback(Output('num-temperatures', 'children'), Input('num-temperatures-dropdown', 'value'))
+# def update_num_temperatures(num_temperatures):
+#         #tutaj przekaz zadaną temp po usb
+#         return html.H6(f'Wybrana liczba pomiarów na wykresie: {num_temperatures}')
 
 
 def updateControl(selected_temperature):
