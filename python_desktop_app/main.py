@@ -14,6 +14,9 @@ import numpy as np
 import skfuzzy as fuzz
 import skfuzzy.membership as mb
 import matplotlib.pyplot as plt
+import usb.core
+import usb.util
+import serial.tools.list_ports
 
 ####################### - Połączenie z PICO LINUX/macOS version - #######################
 ports = serial.tools.list_ports.comports() #serial.tools.list_ports.comports()
@@ -23,10 +26,30 @@ for port in ports:
         device = port.device
         break
 if device is None:
-    print("Nie znaleziono urządzenia")
+    print("Nie znaleziono urządzenia PICO")
 else:
-    print("Znaleziono urządzenie: ", device)
+    print("Znaleziono urządzenie PICO: ", device)
 ser = serial.Serial(device, 9600)
+
+####################### - Połączenie z NANO LINUX/macOS version - #######################
+import serial.tools.list_ports
+
+def find_device_by_vid_pid(vid, pid):
+    ports = serial.tools.list_ports.comports()
+    for port in ports:
+        if port.vid == vid and port.pid == pid:
+            return port.device
+    return None
+
+# Zastąp odpowiednimi wartościami VID i PID
+device = find_device_by_vid_pid(0x1a86, 0x7523)
+
+if device is not None:
+    print('Znaleziono urządzenie NANO: ', device)
+    ser2 = serial.Serial(device, 9600)
+else:
+    print("Nie znaleziono urządzenia NANO")
+
 
 ####################### - Połączenie z PICO Windows version (manual) - #######################
 # ser = serial.Serial('COM3')  # Zastąp 'COM3' właściwym portem
@@ -44,16 +67,25 @@ def send_command(command): # for example: 'H1-ON'
     # response = ser.readline().decode().strip()  # Odczytaj potwierdzenie
     # print('Wyslano: ', command)
 
+
 def read_temperature(n):        #n - numer porządkowy czujnika: 0,1,2,3
     command = 'T'+str(n)+'-?\n'
-    ser.write(command.encode())  # Wysłanie komendy odczytu temperatury T0
-    # time.sleep(0.1)
-    response = ser.readline().decode().strip()
+    ser2.write(command.encode())  # Wysłanie komendy odczytu temperatury T0
+    time.sleep(0.2)
+    response = ser2.readline().decode().strip()
     # print('Odpowiedź T'+str(n)+':', response)
+    temperature=50
     if response.startswith('T'+str(n)+'-'):
         temperature = int(response.split('-')[1])
     return temperature
 
+def read_from_serial(ser):
+    start_time = time.time()
+    while time.time() - start_time < 5:
+        if ser.in_waiting > 0:
+            data = ser.readline().decode('utf-8').strip()
+            print(data)
+read_from_serial(ser2)
 
 ####################### - Control functions - #######################
 
@@ -261,15 +293,6 @@ def updateControl(setTemperature):
     send_command(H1ctrlcmd)
     send_command(H2ctrlcmd)
     send_command(H3ctrlcmd)
-
-    # Reading temperatures swcond time -  for debug purposes
-    T0 = read_temperature(0)
-    T1 = read_temperature(1)
-    T2 = read_temperature(2)
-    T3 = read_temperature(3)
-    T3 = read_temperature(3)
-    T3 = read_temperature(3)
-
 
     # For testing purposes - rand temperatures
     # T0 = random.randint(10, 20)
