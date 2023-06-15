@@ -5,8 +5,12 @@ Adafruit_PCF8575 pcf;
 #define H2 3
 #define H3 0
 #define P1 1
+#define I2C_SDA 8
+#define I2C_SCL 9
+
 
 void setup() {
+  
   pinMode(H1, OUTPUT);
   pinMode(H2, OUTPUT);
   pcf.begin(0x21, &Wire);
@@ -14,13 +18,13 @@ void setup() {
   pcf.pinMode(P1, OUTPUT);
   pinMode(LED_BUILTIN, OUTPUT);
   
-//  Test turn on
-  pcf.digitalWrite(H3, LOW);
+//  Test turn on PUMP
+//  pcf.digitalWrite(H3, LOW);
   pcf.digitalWrite(P1, LOW);
-  digitalWrite(H1, LOW);
-  digitalWrite(H2, LOW);
+//  digitalWrite(H1, LOW);
+//  digitalWrite(H2, LOW);
 
-  delay(2000);
+//  delay(2000);
 //  test turn off
   pcf.digitalWrite(H3, HIGH);
   pcf.digitalWrite(P1, HIGH);
