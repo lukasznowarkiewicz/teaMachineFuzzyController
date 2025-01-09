@@ -1,43 +1,83 @@
+# Tea Machine Fuzzy Controller
 
+## Project Overview
+This repository contains scripts, applications, and resources for the Tea Machine Fuzzy Controller project. This project was developed as part of a course during studies as a 'projekt zaliczeniowy.' The goal was to develop a fuzzy controller and test it on real devices, specifically flow heaters purchased for the tea machine. The system was designed to run on a Raspberry Pi.
 
+## Directory Details
 
-# Sterownik Raspberry pi PICO z obsługą czujników temperatury DS18B20
+### `iss_proj_main_nano/`
+Firmware for the Arduino Nano microcontroller, used for reading temperatures from DS18B20 sensors.
 
-Ten projekt Arduino służy do sterowania czterema wyjściami GPIO (H1, H2, H3, P1) oraz do odczytywania temperatury z czterech czujników DS18B20 (T0, T1, T2, T3).
+### `iss_proj_main_pico/`
+Firmware for the Raspberry Pi Pico, controlling the machine's heaters through relays. Includes pin configurations.
 
-## Schemat pinów
-Piny GPIO zdefiniowane w projekcie to:
-- H1 -> Pin 18
-- H2 -> Pin 19
-- H3 -> Pin 20
-- P1 -> Pin 21
-- DS18B20 -> Pin 6 (Dla obu czujników)
+### `python_desktop_app/`
+Python-based desktop application to interface with the tea machine.
 
-## Sterowanie
-Sterowanie odbywa się przez port szeregowy. Możesz wysłać następujące komendy do sterowania pinami GPIO:
-- H1-ON
-- H1-OFF
-- H2-ON
-- H2-OFF
-- H3-ON
-- H3-OFF
-- P1-ON
-- P1-OFF
+### `shell_scripts/`
+Shell script to pull the newest version from the repository, enabling quick software updates during development.
 
-Po poprawnym wykonaniu każdej komendy sterującej, Arduino odeśle potwierdzenie w postaci odebranej komendy z dopiskiem "-OK". Na przykład, po otrzymaniu komendy "H1-ON", Arduino odesłać "H1-ON-OK".
+### `web_app/`
+Web application interface for the tea machine.
 
-## Odczyt temperatury
-Aby odczytać temperaturę z czujników DS18B20, można wysłać następujące komendy:
-- T0-?
-- T1-?
-- T2-?
-- T3-?
+## Usage
 
+### Running the Python Desktop App
+1. Navigate to the `python_desktop_app` folder:
+   ```bash
+   cd python_desktop_app
+   ```
+2. Run the application using Python:
+   ```bash
+   python main.py
+   ```
+3. Follow the on-screen instructions to interface with the tea machine.
 
-Arduino odpowie poprzez przesłanie temperatury w formie "T1-XX.XC" lub "T2-XX.XC", gdzie XX.X to odczytana temperatura. Na koniec otrzymasz potwierdzenie w postaci "T1-?-OK" lub "T2-?-OK".
+### Reading Temperatures
+Use the firmware in the `iss_proj_main_nano/` folder with an Arduino Nano to read temperatures from DS18B20 sensors:
+1. Flash the `iss_proj_main_nano.ino` file onto the Arduino Nano.
+2. Connect the Arduino to a computer or Raspberry Pi via USB.
+3. Open a serial terminal (e.g., Arduino IDE Serial Monitor) at the correct baud rate.
+4. Send the following commands to read temperatures from each sensor:
+   - `T0-?` for the first sensor
+   - `T1-?` for the second sensor
+   - `T2-?` for the third sensor
+   - `T3-?` for the fourth sensor
+5. The Arduino will respond with the temperature reading in the format `T0-XX.XC` (e.g., `T0-23.5C`).
 
-## Biblioteki
-Ten projekt korzysta z następujących bibliotek Arduino:
-- OneWire
-- DallasTemperature
+### Controlling Heaters Manually
+Use the firmware in the `iss_proj_main_pico/` folder with a Raspberry Pi Pico to control heaters through relays:
+1. Flash the `iss_proj_main_pico.ino` file onto the Raspberry Pi Pico.
+2. Connect the Pico to a computer or Raspberry Pi via USB.
+3. Open a serial terminal at the correct baud rate.
+4. Send the following commands to control the heaters:
+   - `H1-ON` to turn on heater 1
+   - `H1-OFF` to turn off heater 1
+   - `H2-ON` to turn on heater 2
+   - `H2-OFF` to turn off heater 2
+   - `H3-ON` to turn on heater 3
+   - `H3-OFF` to turn off heater 3
+5. The Pico will confirm each command with an `-OK` response, e.g., `H1-ON-OK`.
+
+### Updating Software
+To quickly pull the latest version of the repository during development:
+1. Navigate to the `shell_scripts` folder:
+   ```bash
+   cd shell_scripts
+   ```
+2. Run the update script:
+   ```bash
+   ./run_app.sh
+   ```
+3. The script will fetch the newest version of the repository.
+
+## Testing
+
+![Test Setup](./img/test_setup.jpeg)
+
+Tests were conducted on a prepared mechanical model made of plywood, incorporating three flow heaters, the TeaMachineControlBoard, relay module, a Raspberry Pi Pico, and an Arduino Nano. The setup demonstrated full functionality and confirmed the system works as intended.
+
+![Tests](./img/tests.jpeg)
+
+![Output 96](./img/out_96.png)
 
